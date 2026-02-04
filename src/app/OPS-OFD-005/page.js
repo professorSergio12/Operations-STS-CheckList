@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { submitChecklistForm } from '@/lib/api';
 
 // Default Checklist 5A items
 const DEFAULT_CHECKLIST_5A = [
@@ -327,11 +329,33 @@ export default function STSChecklist5AC() {
     }
   };
 
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const router = useRouter();
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: Implement API call to save form data
-    // eslint-disable-next-line no-console
-    console.log('Form Data:', formData);
+    try {
+      setSubmitting(true);
+      setSubmitError(null);
+      setSubmitSuccess(false);
+      const payload = {
+        documentInfo: formData.documentInfo,
+        transferInfo: formData.transferInfo,
+        checklist5A: formData.checklist5A,
+        checklist5BShip: formData.checklist5BShip,
+        checklist5CTerminal: formData.checklist5CTerminal,
+        signature: formData.signature,
+        status: 'DRAFT',
+      };
+      await submitChecklistForm('ops-ofd-005', payload);
+      setSubmitSuccess(true);
+    } catch (err) {
+      setSubmitError(err.message || 'Failed to submit checklist.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   // Render repetitive check section
@@ -720,23 +744,25 @@ export default function STSChecklist5AC() {
           </div>
         </div>
 
+        {submitError && (
+          <div className="mb-4 p-4 bg-red-900/30 border border-red-600 rounded text-red-300 text-sm">{submitError}</div>
+        )}
         {/* Submit Button */}
         <div className="flex justify-end gap-4">
           <button
-            type="button"
-            onClick={() => globalThis.print()}
-            className="px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded transition-colors cursor-pointer"
-          >
-            Print
-          </button>
-          <button
             type="submit"
             onClick={handleSubmit}
-            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded transition-colors cursor-pointer"
+            disabled={submitting}
+            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Submit Checklist
+            {submitting ? 'Submitting...' : 'Submit Checklist'}
           </button>
         </div>
+        {submitSuccess && (
+          <div className="mt-4 p-4 bg-green-900/30 border border-green-600 rounded text-green-300 text-sm">
+            Form submitted successfully.
+          </div>
+        )}
       </div>
     </div>
   );

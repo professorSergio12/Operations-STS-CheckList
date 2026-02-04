@@ -1,9 +1,12 @@
-// API Configuration
-// Update this to match your backend server URL
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000/api/operations/sts-checklist';
+// API Configuration – base URL of the main app (Oceane-Marine) STS checklist API.
+// Must include full path, e.g. http://localhost:3000/api/operations/sts-checklist
+export const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  'http://localhost:3000/api/operations/sts-checklist';
 
 // Form titles mapping
 export const FORM_TITLES = {
+  'declaration-of-sea': 'Declaration Of STS At Sea',
   'ops-ofd-001': 'OPS-OFD-001 - Before Operation Commence',
   'ops-ofd-001a': 'OPS-OFD-001A - Ship Standard Questionnaire',
   'ops-ofd-002': 'OPS-OFD-002 - Before Run In & Mooring',
@@ -21,8 +24,9 @@ export const FORM_TITLES = {
   'ops-ofd-029': 'OPS-OFD-029 - Mooring Master Expense Sheet',
 };
 
-// Form list for dashboard
+// Form list for dashboard (data submitted from this app appears in these lists)
 export const FORMS = [
+  { formNo: 'Declaration', title: 'Declaration Of STS At Sea', apiPath: 'declaration-of-sea' },
   { formNo: 'OPS-OFD-001', title: 'Before Operation Commence', apiPath: 'ops-ofd-001' },
   { formNo: 'OPS-OFD-001A', title: 'Ship Standard Questionnaire', apiPath: 'ops-ofd-001a' },
   { formNo: 'OPS-OFD-002', title: 'Before Run In & Mooring', apiPath: 'ops-ofd-002' },

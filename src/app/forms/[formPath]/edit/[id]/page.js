@@ -152,9 +152,9 @@ export default function EditFormPage() {
       const result = await response.json();
       setSuccess(true);
       
-      // Redirect to view page after a short delay
+      // Redirect to dashboard (view/list is in main app)
       setTimeout(() => {
-        router.push(`/forms/${formPath}/view/${id}`);
+        router.push('/');
       }, 1500);
     } catch (err) {
       console.error('Error updating form:', err);
@@ -339,7 +339,7 @@ export default function EditFormPage() {
           <div className="bg-red-900/20 border border-red-600 rounded-lg p-4">
             <p className="text-red-400">Error: {error}</p>
             <button
-              onClick={() => router.push(`/forms/${formPath}/list`)}
+              onClick={() => router.push('/')}
               className="mt-4 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded"
             >
               Back to List
@@ -360,7 +360,7 @@ export default function EditFormPage() {
         {/* Header */}
         <div className="mb-6">
           <button
-            onClick={() => router.push(`/forms/${formPath}/list`)}
+            onClick={() => router.push('/')}
             className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded transition-colors mb-4"
           >
             ← Back to List
@@ -399,7 +399,7 @@ export default function EditFormPage() {
           <div className="mt-8 flex gap-4 justify-end border-t border-gray-700 pt-6">
             <button
               type="button"
-              onClick={() => router.push(`/forms/${formPath}/view/${id}`)}
+              onClick={() => router.push('/')}
               className="px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded transition-colors"
               disabled={saving}
             >

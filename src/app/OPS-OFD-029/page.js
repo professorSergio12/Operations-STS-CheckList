@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { submitChecklistForm } from '@/lib/api';
 
 // Initial number of rows for statement of expenses
 const INITIAL_EXPENSE_ROWS = 1;
@@ -195,11 +197,38 @@ export default function MooringMasterExpenseSheet() {
     });
   };
 
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const router = useRouter();
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: Implement API call to save form data
-    // eslint-disable-next-line no-console
-    console.log('Form Data:', formData);
+    try {
+      setSubmitting(true);
+      setSubmitError(null);
+      setSubmitSuccess(false);
+      const payload = {
+        personalDetails: formData.personalDetails,
+        bankDetails: formData.bankDetails,
+        travelDetails: formData.travelDetails,
+        statementOfExpenses: formData.statementOfExpenses.map((exp) => ({
+          description: exp.description || '',
+          numberOfDaysOrMisc: exp.numberOfDaysOrMisc || '',
+          dailyRate: parseFloat(exp.dailyRate) || 0,
+          amount: parseFloat(exp.amount) || 0,
+          officeTotal: parseFloat(exp.officeTotal) || 0,
+        })),
+        totals: formData.totals,
+        status: 'DRAFT',
+      };
+      await submitChecklistForm('ops-ofd-029', payload);
+      setSubmitSuccess(true);
+    } catch (err) {
+      setSubmitError(err.message || 'Failed to submit expense sheet.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -562,16 +591,25 @@ export default function MooringMasterExpenseSheet() {
           All Expenses of whatsoever must be supported by a valid receipt.
         </div>
 
+        {submitError && (
+          <div className="mb-4 p-4 bg-red-900/30 border border-red-600 rounded text-red-300 text-sm">{submitError}</div>
+        )}
         {/* Submit Button */}
         <div className="flex justify-end gap-4">
           <button
             type="submit"
             onClick={handleSubmit}
-            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded cursor-pointer transition-colors"
+            disabled={submitting}
+            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Submit Expense Sheet
+            {submitting ? 'Submitting...' : 'Submit Expense Sheet'}
           </button>
         </div>
+        {submitSuccess && (
+          <div className="mt-4 p-4 bg-green-900/30 border border-green-600 rounded text-green-300 text-sm">
+            Form submitted successfully.
+          </div>
+        )}
       </div>
     </div>
   );

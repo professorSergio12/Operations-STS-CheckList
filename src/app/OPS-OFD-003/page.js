@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { submitChecklistForm } from '@/lib/api';
 
 // Default checklist items for 3A (Generic Checks 1-21)
 const DEFAULT_CHECKLIST_3A = [
@@ -91,10 +93,54 @@ export default function STSChecklist3A3B() {
     }
   };
 
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const router = useRouter();
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: Implement API call to save form data
-    console.log('Form Data:', formData);
+    try {
+      setSubmitting(true);
+      setSubmitError(null);
+      setSubmitSuccess(false);
+      const payload = {
+        formNo: formData.formNo || 'OPS-OFD-003',
+        revisionNo: formData.revisionNo || '',
+        issueDate: formData.issueDate || null,
+        approvedBy: formData.approvedBy,
+        constantHeadingShip: formData.constantHeadingShip,
+        manoeuvringShip: formData.manoeuvringShip,
+        designatedPOACName: formData.designatedPOACName,
+        stsSuperintendentName: formData.stsSuperintendentName,
+        transferDate: formData.transferDate || null,
+        transferLocation: formData.transferLocation,
+        checklist3A: (formData.checklist3A || []).map((item) => ({
+          clNumber: item.clNumber,
+          description: item.description,
+          status: item.status === 'YES' ? 'YES' : 'NO',
+          remarks: item.remarks === 'NOT_APPLICABLE' ? 'NOT_APPLICABLE' : (item.remarks || ''),
+        })),
+        checklist3B: (formData.checklist3B || []).map((item) => ({
+          clNumber: item.clNumber,
+          description: item.description,
+          status: item.status === 'YES' ? 'YES' : 'NO',
+          remarks: item.remarks === 'NOT_APPLICABLE' ? 'NOT_APPLICABLE' : (item.remarks || ''),
+        })),
+        signature: {
+          rank: formData.signature.rank,
+          date: formData.signature.date || null,
+          signature: formData.signature.signature || '',
+        },
+        status: 'DRAFT',
+      };
+      await submitChecklistForm('ops-ofd-003', payload);
+      setSubmitSuccess(true);
+    } catch (err) {
+      setSubmitError(err.message || 'Failed to submit checklist.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const renderChecklistTable = (checklistType, title) => {
@@ -263,6 +309,9 @@ export default function STSChecklist3A3B() {
         {/* Checklist 3B Section */}
         {renderChecklistTable('checklist3B', 'CHECKLIST 3B - LPG/LNG Additional Checks')}
 
+        {submitError && (
+          <div className="mb-4 p-4 bg-red-900/30 border border-red-600 rounded text-red-300 text-sm">{submitError}</div>
+        )}
         {/* Signature Section */}
         <div className="mb-8">
           <h3 className="text-lg font-semibold mb-4">Signature</h3>
@@ -318,20 +367,19 @@ export default function STSChecklist3A3B() {
         {/* Submit Button */}
         <div className="flex justify-end gap-4">
           <button
-            type="button"
-            onClick={() => window.print()}
-            className="px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded transition-colors cursor-pointer"
-          >
-            Print
-          </button>
-          <button
             type="submit"
             onClick={handleSubmit}
-            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded transition-colors cursor-pointer"
+            disabled={submitting}
+            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Submit Checklist
+            {submitting ? 'Submitting...' : 'Submit Checklist'}
           </button>
         </div>
+        {submitSuccess && (
+          <div className="mt-4 p-4 bg-green-900/30 border border-green-600 rounded text-green-300 text-sm">
+            Form submitted successfully.
+          </div>
+        )}
       </div>
     </div>
   );

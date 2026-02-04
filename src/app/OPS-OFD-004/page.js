@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { submitChecklistForm } from '@/lib/api';
 
 // CL 4A Generic Checks (1-26)
 const CHECKLIST_4A = [
@@ -450,10 +452,47 @@ export default function STSChecklist4AF() {
     }
   };
 
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const router = useRouter();
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Form Data:', formData);
-    // TODO: Implement API call to save form data
+    try {
+      setSubmitting(true);
+      setSubmitError(null);
+      setSubmitSuccess(false);
+      const payload = {
+        formNo: formData.formNo || 'OPS-OFD-004',
+        revisionNo: formData.revisionNo || '',
+        revisionDate: formData.issueDate || null,
+        approvedBy: formData.approvedBy,
+        page: '',
+        transferInfo: {
+          constantHeadingShip: formData.constantHeadingShip,
+          manoeuvringShip: formData.manoeuvringShip,
+          designatedPOACName: formData.designatedPOACName,
+          stsSuperintendentName: formData.stsSuperintendentName,
+          transferDate: formData.transferDate || null,
+          transferLocation: formData.transferLocation,
+        },
+        checklist4A: formData.checklist4A,
+        checklist4B: formData.checklist4B,
+        checklist4C: formData.checklist4C,
+        checklist4D: formData.checklist4D,
+        checklist4E: formData.checklist4E,
+        checklist4F: formData.checklist4F,
+        signature: formData.signature,
+        status: 'DRAFT',
+      };
+      await submitChecklistForm('ops-ofd-004', payload);
+      setSubmitSuccess(true);
+    } catch (err) {
+      setSubmitError(err.message || 'Failed to submit checklist.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const renderDualStatusChecklist = (checklist, checklistType, onChangeHandler) => {
@@ -1760,16 +1799,25 @@ export default function STSChecklist4AF() {
           </div>
         </div>
 
+        {submitError && (
+          <div className="mb-4 p-4 bg-red-900/30 border border-red-600 rounded text-red-300 text-sm">{submitError}</div>
+        )}
         {/* Submit Button */}
         <div className="flex justify-end gap-4">
           <button
             type="submit"
             onClick={handleSubmit}
-            className="px-6 py-2 bg-blue-600 cursor-pointer hover:bg-blue-700 rounded transition-colors cursor-pointer"
+            disabled={submitting}
+            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Submit Checklist
+            {submitting ? 'Submitting...' : 'Submit Checklist'}
           </button>
         </div>
+        {submitSuccess && (
+          <div className="mt-4 p-4 bg-green-900/30 border border-green-600 rounded text-green-300 text-sm">
+            Form submitted successfully.
+          </div>
+        )}
       </div>
     </div>
   );

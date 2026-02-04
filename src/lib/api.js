@@ -6,18 +6,36 @@
 
 import { API_BASE_URL } from './config';
 
+async function parseJsonResponse(response) {
+  const text = await response.text();
+  try {
+    return text ? JSON.parse(text) : {};
+  } catch {
+    return { error: response.statusText || 'Invalid response' };
+  }
+}
+
 /**
  * Submit Declaration of Sea form (JSON body).
  * POST to declaration-of-sea/create
  */
 export async function submitDeclarationOfSea(body) {
-  const response = await fetch(`${API_BASE_URL}/declaration-of-sea/create`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-
-  const result = await response.json();
+  const url = `${API_BASE_URL}/declaration-of-sea/create`;
+  let response;
+  try {
+    response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+  } catch (err) {
+    throw new Error(
+      err.message === 'Failed to fetch'
+        ? 'Cannot reach the server. Is the main app (Oceane-Marine) running? Check .env.local NEXT_PUBLIC_API_BASE_URL.'
+        : err.message
+    );
+  }
+  const result = await parseJsonResponse(response);
   if (!response.ok) {
     throw new Error(result.error || 'Failed to submit declaration');
   }
@@ -39,12 +57,21 @@ export async function submitChecklistForm(apiPath, data, signatureFile = null) {
     formData.append('signature', signatureFile);
   }
 
-  const response = await fetch(`${API_BASE_URL}/${apiPath}/create`, {
-    method: 'POST',
-    body: formData,
-  });
-
-  const result = await response.json();
+  const url = `${API_BASE_URL}/${apiPath}/create`;
+  let response;
+  try {
+    response = await fetch(url, {
+      method: 'POST',
+      body: formData,
+    });
+  } catch (err) {
+    throw new Error(
+      err.message === 'Failed to fetch'
+        ? 'Cannot reach the server. Is the main app (Oceane-Marine) running? Check .env.local NEXT_PUBLIC_API_BASE_URL.'
+        : err.message
+    );
+  }
+  const result = await parseJsonResponse(response);
   if (!response.ok) {
     throw new Error(result.error || `Failed to submit ${apiPath}`);
   }

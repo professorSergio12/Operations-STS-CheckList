@@ -5,10 +5,10 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { submitChecklistForm } from '@/lib/api';
 
-// Number of rows for each table
-const FENDER_ROWS = 10;
-const HOSE_ROWS = 5;
-const OTHER_EQUIPMENT_ROWS = 5;
+// Initial number of rows for each table (user can add more)
+const FENDER_ROWS = 3;
+const HOSE_ROWS = 3;
+const OTHER_EQUIPMENT_ROWS = 3;
 
 export default function STSEquipmentChecklist() {
   const [formData, setFormData] = useState({

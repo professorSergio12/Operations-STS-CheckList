@@ -219,7 +219,6 @@ export default function STSHourlyQuantityLog() {
                     <div className="text-xs font-normal mt-1">(barrels / M3 / Lts. / MT)</div>
                   </th>
                   <th className="border border-gray-600 p-3 text-center">Checked by (sign)</th>
-                  <th className="border border-gray-600 p-3 text-center w-20">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -282,17 +281,6 @@ export default function STSHourlyQuantityLog() {
                         className="w-full bg-gray-800 border border-gray-600 rounded px-2 py-1 text-white text-sm"
                         placeholder="Name or signature"
                       />
-                    </td>
-                    <td className="border border-gray-600 p-2 text-center">
-                      {formData.hourlyRecords.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveRow(index)}
-                          className="px-2 py-1 bg-red-600 hover:bg-red-700 rounded text-white text-xs"
-                        >
-                          Remove
-                        </button>
-                      )}
                     </td>
                   </tr>
                 ))}

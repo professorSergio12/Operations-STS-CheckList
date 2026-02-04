@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { submitChecklistForm } from '@/lib/api';
 
 // Predefined activities for STS Operation Timings
 const PREDEFINED_ACTIVITIES = [
@@ -166,11 +168,34 @@ export default function STSTimesheet() {
     });
   };
 
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const router = useRouter();
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: Implement API call to save form data
-    // eslint-disable-next-line no-console
-    console.log('Form Data:', formData);
+    try {
+      setSubmitting(true);
+      setSubmitError(null);
+      setSubmitSuccess(false);
+      const payload = {
+        documentInfo: formData.documentInfo,
+        basicInfo: formData.basicInfo,
+        operationTimings: formData.operationTimings,
+        additionalActivities: formData.additionalActivities,
+        weatherDelay: formData.weatherDelay,
+        cargoInfo: formData.cargoInfo,
+        finalRemarks: formData.finalRemarks,
+        status: 'DRAFT',
+      };
+      await submitChecklistForm('ops-ofd-018', payload);
+      setSubmitSuccess(true);
+    } catch (err) {
+      setSubmitError(err.message || 'Failed to submit timesheet.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   // Render timing row
@@ -513,16 +538,25 @@ export default function STSTimesheet() {
           </div>
         </div>
 
+        {submitError && (
+          <div className="mb-4 p-4 bg-red-900/30 border border-red-600 rounded text-red-300 text-sm">{submitError}</div>
+        )}
         {/* Submit Button */}
         <div className="flex justify-end gap-4">
           <button
             type="submit"
             onClick={handleSubmit}
-            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded cursor-pointer transition-colors"
+            disabled={submitting}
+            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Submit Timesheet
+            {submitting ? 'Submitting...' : 'Submit Timesheet'}
           </button>
         </div>
+        {submitSuccess && (
+          <div className="mt-4 p-4 bg-green-900/30 border border-green-600 rounded text-green-300 text-sm">
+            Form submitted successfully.
+          </div>
+        )}
       </div>
     </div>
   );

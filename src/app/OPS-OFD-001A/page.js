@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { submitChecklistForm } from '@/lib/api';
 
 const QUESTIONS = [
   { id: 1, text: 'Kindly confirm if your vessel has STS Transfer Plan duly approved by flag state and what are the \'STS Environmental Operating Limits\' with respect to approaching, mooring, anchoring, berthing, unmooring, cargo operation in terms of wind speed, sea state, swell and visibility.' },
@@ -168,10 +170,36 @@ export default function ShipStandardQuestionnaire() {
     }
   };
 
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const router = useRouter();
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Form Data:', formData);
-    // TODO: Implement API call to save form data
+    try {
+      setSubmitting(true);
+      setSubmitError(null);
+      setSubmitSuccess(false);
+      const payload = {
+        formNo: formData.formNo || 'OPS-OFD-001A',
+        revisionNo: formData.revisionNo || '',
+        revisionDate: formData.issueDate || null,
+        approvedBy: formData.approvedBy,
+        proposedLocation: formData.proposedLocation,
+        shipName: formData.shipName,
+        date: formData.date || null,
+        responses: formData.responses,
+        signature: formData.signature,
+        status: 'DRAFT',
+      };
+      await submitChecklistForm('ops-ofd-001a', payload);
+      setSubmitSuccess(true);
+    } catch (err) {
+      setSubmitError(err.message || 'Failed to submit questionnaire.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const renderQuestion = (question) => {
@@ -714,23 +742,29 @@ export default function ShipStandardQuestionnaire() {
           <p>Disclaimer: The content of this questionnaire has been only checked by Oceane group; we have no liability for the content of the information submitted onto this document.</p>
         </div>
 
+        {/* Submit error */}
+        {submitError && (
+          <div className="mb-4 p-4 bg-red-900/30 border border-red-600 rounded text-red-300 text-sm">
+            {submitError}
+          </div>
+        )}
+
         {/* Submit Button */}
         <div className="flex justify-end gap-4">
           <button
-            type="button"
-            onClick={() => window.print()}
-            className="px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded transition-colors cursor-pointer"
-          >
-            Print
-          </button>
-          <button
             type="submit"
             onClick={handleSubmit}
-            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded transition-colors cursor-pointer"
+            disabled={submitting}
+            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Submit Questionnaire
+            {submitting ? 'Submitting...' : 'Submit Questionnaire'}
           </button>
         </div>
+        {submitSuccess && (
+          <div className="mt-4 p-4 bg-green-900/30 border border-green-600 rounded text-green-300 text-sm">
+            Form submitted successfully.
+          </div>
+        )}
       </div>
     </div>
   );

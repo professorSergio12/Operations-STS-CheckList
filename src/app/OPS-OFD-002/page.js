@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { submitChecklistForm } from '@/lib/api';
 
 const GENERIC_CHECKS = [
   { id: 1, description: 'Fenders and associated equipment are visually inspected, in good condition, correctly positioned and rigged', remark: '', hasNotApplicable: false },
@@ -102,10 +104,52 @@ export default function BeforeRunInMooringChecklist() {
     }
   };
 
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const router = useRouter();
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: Implement API call to save form data
-    console.log('Form Data:', formData);
+    try {
+      setSubmitting(true);
+      setSubmitError(null);
+      setSubmitSuccess(false);
+      const payload = {
+        formNo: formData.formNo || 'OPS-OFD-002',
+        revisionNo: formData.revisionNo || '',
+        revisionDate: formData.issueDate || null,
+        approvedBy: formData.approvedBy,
+        constantHeadingShip: formData.constantHeadingShip,
+        maneuveringShip: formData.maneuveringShip,
+        nameOfDesignatedPOAC: formData.nameOfDesignatedPOAC,
+        nameOfSTSSuperintendent: formData.nameOfSTSSuperintendent,
+        dateOfTransfer: formData.dateOfTransfer || null,
+        locationOfTransfer: formData.locationOfTransfer,
+        genericChecks: formData.genericChecks.map((c) => ({
+          id: c.id,
+          clNumber: c.id,
+          description: c.description,
+          status: c.status,
+          notApplicable: c.notApplicable,
+          remarks: c.remark || '',
+          userRemark: c.userRemark || '',
+        })),
+        signature: {
+          name: formData.signature.name,
+          rank: formData.signature.rank,
+          date: formData.signature.date || null,
+        },
+        signatureBlock: { signature: formData.signature.signature || '' },
+        status: 'DRAFT',
+      };
+      await submitChecklistForm('ops-ofd-002', payload);
+      setSubmitSuccess(true);
+    } catch (err) {
+      setSubmitError(err.message || 'Failed to submit checklist.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -328,23 +372,24 @@ export default function BeforeRunInMooringChecklist() {
           </div>
         </div>
 
-        {/* Submit Button */}
+        {submitError && (
+          <div className="mb-4 p-4 bg-red-900/30 border border-red-600 rounded text-red-300 text-sm">{submitError}</div>
+        )}
         <div className="flex justify-end gap-4">
-          <button
-            type="button"
-            onClick={() => window.print()}
-            className="px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded transition-colors cursor-pointer"
-          >
-            Print
-          </button>
           <button
             type="submit"
             onClick={handleSubmit}
-            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded transition-colors cursor-pointer"
+            disabled={submitting}
+            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Submit Checklist
+            {submitting ? 'Submitting...' : 'Submit Checklist'}
           </button>
         </div>
+        {submitSuccess && (
+          <div className="mt-4 p-4 bg-green-900/30 border border-green-600 rounded text-green-300 text-sm">
+            Form submitted successfully.
+          </div>
+        )}
       </div>
     </div>
   );

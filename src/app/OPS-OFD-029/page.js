@@ -473,7 +473,6 @@ export default function MooringMasterExpenseSheet() {
                     Total (in Dirhams)
                     <div className="text-xs font-normal">For Office Use</div>
                   </th>
-                  <th className="border border-gray-600 p-3 text-center w-20">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -522,17 +521,6 @@ export default function MooringMasterExpenseSheet() {
                         readOnly
                         className="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white text-sm cursor-not-allowed"
                       />
-                    </td>
-                    <td className="border border-gray-600 p-2 text-center">
-                      {formData.statementOfExpenses.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveExpenseRow(index)}
-                          className="px-2 py-1 bg-red-600 hover:bg-red-700 rounded text-white text-xs"
-                        >
-                          Remove
-                        </button>
-                      )}
                     </td>
                   </tr>
                 ))}

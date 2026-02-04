@@ -258,19 +258,6 @@ export default function STSTimesheet() {
             placeholder="Remarks"
           />
         </td>
-        {isAdditional && (
-          <td className="border border-gray-600 p-2 text-center">
-            {formData.additionalActivities.length > 1 && (
-              <button
-                type="button"
-                onClick={() => handleRemoveAdditionalActivityRow(index)}
-                className="px-2 py-1 bg-red-600 hover:bg-red-700 rounded text-white text-xs"
-              >
-                Remove
-              </button>
-            )}
-          </td>
-        )}
       </tr>
     );
   };
@@ -410,7 +397,6 @@ export default function STSTimesheet() {
                   <th colSpan="2" className="border border-gray-600 p-3 text-center">FROM</th>
                   <th colSpan="2" className="border border-gray-600 p-3 text-center">TO</th>
                   <th className="border border-gray-600 p-3 text-left">REMARKS</th>
-                  <th className="border border-gray-600 p-3 text-center w-20">Action</th>
                 </tr>
                 <tr className="bg-gray-700">
                   <th className="border border-gray-600 p-2"></th>
@@ -418,7 +404,6 @@ export default function STSTimesheet() {
                   <th className="border border-gray-600 p-2 text-center">Time</th>
                   <th className="border border-gray-600 p-2 text-center">Date</th>
                   <th className="border border-gray-600 p-2 text-center">Time</th>
-                  <th className="border border-gray-600 p-2"></th>
                   <th className="border border-gray-600 p-2"></th>
                 </tr>
               </thead>

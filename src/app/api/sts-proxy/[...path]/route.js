@@ -6,19 +6,31 @@ const BACKEND =
   process.env.NEXT_PUBLIC_API_BASE_URL ||
   'http://localhost:3000/api/operations/sts-checklist';
 
-export async function POST(request, context) {
+async function handleRequest(request, context, method) {
   const params = await Promise.resolve(context.params || {});
   const pathSegment = Array.isArray(params.path) ? params.path.join('/') : '';
-  const url = pathSegment ? `${BACKEND}/${pathSegment}` : BACKEND;
+  
+  // Get query params from request URL
+  const requestUrl = new URL(request.url);
+  const queryString = requestUrl.search;
+  
+  const url = pathSegment 
+    ? `${BACKEND}/${pathSegment}${queryString}` 
+    : `${BACKEND}${queryString}`;
 
   const contentType = request.headers.get('content-type') || '';
 
   const fetchOptions = {
-    method: 'POST',
+    method: method,
     headers: {},
-    body: request.body,
     duplex: 'half',
   };
+  
+  // Only add body for POST and PUT
+  if (method === 'POST' || method === 'PUT') {
+    fetchOptions.body = request.body;
+  }
+  
   if (contentType) {
     fetchOptions.headers['Content-Type'] = contentType;
   }
@@ -46,4 +58,16 @@ export async function POST(request, context) {
       { status: 502 }
     );
   }
+}
+
+export async function GET(request, context) {
+  return handleRequest(request, context, 'GET');
+}
+
+export async function POST(request, context) {
+  return handleRequest(request, context, 'POST');
+}
+
+export async function PUT(request, context) {
+  return handleRequest(request, context, 'PUT');
 }

@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { submitChecklistForm } from '@/lib/api';
+import { useSearchParams } from 'next/navigation';
 
 const QUESTIONS = [
   { id: 1, text: 'Kindly confirm if your vessel has STS Transfer Plan duly approved by flag state and what are the \'STS Environmental Operating Limits\' with respect to approaching, mooring, anchoring, berthing, unmooring, cargo operation in terms of wind speed, sea state, swell and visibility.' },
@@ -66,7 +66,12 @@ const QUESTIONS = [
 ];
 
 export default function ShipStandardQuestionnaire() {
+  const searchParams = useSearchParams();
+  const operationRef = searchParams.get('operationRef');
+
+
   const [formData, setFormData] = useState({
+    operationRef: operationRef || '',
     formNo: 'OPS-OFD-001A',
     issueDate: new Date().toISOString().split('T')[0],
     approvedBy: 'JS',
@@ -121,6 +126,15 @@ export default function ShipStandardQuestionnaire() {
     }
   });
 
+  useEffect(() => {
+    if (operationRef) {
+      setFormData(prev => ({
+        ...prev,
+        operationRef
+      }));
+    }
+  }, [operationRef]);
+
   const handleBasicInfoChange = (field, value) => {
     setFormData({ ...formData, [field]: value });
   };
@@ -128,14 +142,14 @@ export default function ShipStandardQuestionnaire() {
   const handleResponseChange = (questionId, value, subField = null) => {
     const updatedResponses = { ...formData.responses };
     const qKey = `q${questionId}`;
-    
+
     if (subField) {
       if (!updatedResponses[qKey]) updatedResponses[qKey] = {};
       updatedResponses[qKey][subField] = value;
     } else {
       updatedResponses[qKey] = value;
     }
-    
+
     setFormData({ ...formData, responses: updatedResponses });
   };
 
@@ -175,32 +189,60 @@ export default function ShipStandardQuestionnaire() {
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const router = useRouter();
 
+
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (submitSuccess) return;
+
+    if (!formData.operationRef) {
+      setSubmitError("Invalid operation reference. Please use valid link.");
+      return;
+    }
+
+    if (submitting) return;
+
     try {
+
       setSubmitting(true);
       setSubmitError(null);
       setSubmitSuccess(false);
+
       const payload = {
-        formNo: formData.formNo || 'OPS-OFD-001A',
-        revisionNo: formData.revisionNo || '',
-        revisionDate: formData.issueDate || null,
+        operationRef: formData.operationRef,
+        formNo: formData.formNo,
+        revisionDate: formData.issueDate,
         approvedBy: formData.approvedBy,
         proposedLocation: formData.proposedLocation,
         shipName: formData.shipName,
-        date: formData.date || null,
+        date: formData.date,
         responses: formData.responses,
         signature: formData.signature,
-        status: 'DRAFT',
+        status: "DRAFT"
       };
-      await submitChecklistForm('ops-ofd-001a', payload);
+
+      const form = new FormData();
+      form.append("data", JSON.stringify(payload));
+
+      const res = await fetch("/api/ops-ofd-001a", {
+        method: "POST",
+        body: form
+      });
+
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.error || "Submission failed");
+      }
+
       setSubmitSuccess(true);
+
     } catch (err) {
-      setSubmitError(err.message || 'Failed to submit questionnaire.');
+      setSubmitError(err.message || "Submission failed");
     } finally {
       setSubmitting(false);
     }
   };
+
 
   const renderQuestion = (question) => {
     const qKey = `q${question.id}`;
@@ -622,6 +664,9 @@ export default function ShipStandardQuestionnaire() {
               <div><strong>Form No:</strong> {formData.formNo}</div>
               <div><strong>Issue Date:</strong> {formData.issueDate}</div>
               <div><strong>Approved by:</strong> {formData.approvedBy}</div>
+              <div className="text-blue-300 mt-2">
+                <b>Operation Ref:</b> {formData.operationRef || "Loading..."}
+              </div>
             </div>
           </div>
         </div>

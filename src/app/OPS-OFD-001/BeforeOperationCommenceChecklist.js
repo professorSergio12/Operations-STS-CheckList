@@ -58,13 +58,13 @@ export default function BeforeOperationCommenceChecklist() {
         approvedBy: 'JS',
         // Vessel Details (nested object to match schema)
         vesselDetails: {
-            vesselName: '',
+        vesselName: '',
             shipOperator: '',
-            charterer: '',
-            stsOrganizer: '',
+        charterer: '',
+        stsOrganizer: '',
             plannedTransferDateTime: '',
-            transferLocation: '',
-            cargo: '',
+        transferLocation: '',
+        cargo: '',
             constantHeadingOrBerthedShip: '',
             manoeuvringOrOuterShip: '',
             poacOrStsSuperintendent: '',
@@ -400,7 +400,7 @@ export default function BeforeOperationCommenceChecklist() {
                 },
             });
         } else {
-            setFormData({ ...formData, [field]: value });
+        setFormData({ ...formData, [field]: value });
         }
     };
 
@@ -515,8 +515,8 @@ export default function BeforeOperationCommenceChecklist() {
             try {
                 res = await fetch(url, {
                     method: method,
-                    body: form
-                });
+                body: form
+            });
             } catch (fetchError) {
                 // Handle network errors
                 if (fetchError.name === 'TypeError' && fetchError.message.includes('fetch')) {
@@ -753,28 +753,28 @@ export default function BeforeOperationCommenceChecklist() {
                     <div className="overflow-x-auto -mx-4 sm:mx-0">
                         <div className="inline-block min-w-full align-middle px-4 sm:px-0">
                             <table className="min-w-full border-collapse border border-gray-600">
-                                <thead>
-                                    <tr className="bg-gray-700">
+                            <thead>
+                                <tr className="bg-gray-700">
                                         <th className="border border-gray-600 p-2 sm:p-3 text-center w-12 sm:w-16 text-xs sm:text-sm">CL</th>
                                         <th className="border border-gray-600 p-2 sm:p-3 text-left text-xs sm:text-sm">Generic Checks</th>
                                         <th className="border border-gray-600 p-2 sm:p-3 text-center w-20 sm:w-24 text-xs sm:text-sm">Status</th>
                                         <th className="border border-gray-600 p-2 sm:p-3 text-left text-xs sm:text-sm">Remarks</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {formData.genericChecks.map((check, index) => (
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {formData.genericChecks.map((check, index) => (
                                         <tr key={check.clNumber} className="hover:bg-gray-700">
                                             <td className="border border-gray-600 p-2 sm:p-3 text-center font-semibold text-xs sm:text-sm">
                                                 {check.clNumber}
-                                            </td>
+                                        </td>
                                             <td className="border border-gray-600 p-2 sm:p-3 text-xs sm:text-sm">
-                                                {check.description}
+                                            {check.description}
                                                 {check.remarks && (
-                                                    <span className="block text-xs text-gray-400 mt-1 italic">
+                                                <span className="block text-xs text-gray-400 mt-1 italic">
                                                         ({check.remarks})
-                                                    </span>
-                                                )}
-                                            </td>
+                                                </span>
+                                            )}
+                                        </td>
                                             <td className="border border-gray-600 p-2 sm:p-3 text-center">
                                                 <select
                                                     value={check.status}
@@ -786,20 +786,20 @@ export default function BeforeOperationCommenceChecklist() {
                                                     <option value="NOT_APPLICABLE">NOT APPLICABLE</option>
                                                     <option value="NO">NO</option>
                                                 </select>
-                                            </td>
+                                        </td>
                                             <td className="border border-gray-600 p-2 sm:p-3">
-                                                <input
-                                                    type="text"
+                                            <input
+                                                type="text"
                                                     value={check.remarks}
-                                                    onChange={(e) => handleRemarkChange(index, e.target.value)}
+                                                onChange={(e) => handleRemarkChange(index, e.target.value)}
                                                     className="w-full bg-gray-800 border border-gray-600 rounded px-1 sm:px-2 py-1 text-white text-xs sm:text-sm"
-                                                    placeholder="Add remark..."
-                                                />
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                                placeholder="Add remark..."
+                                            />
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                         </div>
                     </div>
                 </div>

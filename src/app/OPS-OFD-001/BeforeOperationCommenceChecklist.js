@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 
 // Helper function to convert relative signature URLs to absolute URLs
 const getSignatureUrl = (signature) => {
@@ -44,6 +44,7 @@ const GENERIC_CHECKS = [
 export default function BeforeOperationCommenceChecklist() {
 
     const searchParams = useSearchParams();
+    const router = useRouter();
     // Trim trailing comma from operationRef if present
     const rawOperationRef = searchParams.get('operationRef');
     const operationRef = rawOperationRef ? rawOperationRef.replace(/,\s*$/, '').trim() : null;
@@ -85,7 +86,7 @@ export default function BeforeOperationCommenceChecklist() {
         },
     });
 
-    // Function to reset form to initial state
+    // Function to reset form to initial state (for create mode)
     const resetForm = () => {
         setFormData({
             operationRef: operationRef || '',
@@ -122,6 +123,49 @@ export default function BeforeOperationCommenceChecklist() {
         if (signatureFileInputRef.current) {
             signatureFileInputRef.current.value = '';
         }
+    };
+
+    // Function to reset form completely and clear URL params (for update mode after submission)
+    const resetFormToCreateMode = () => {
+        setFormData({
+            operationRef: '',
+            formNo: 'OPS-OFD-001',
+            issueDate: new Date().toISOString().split('T')[0],
+            approvedBy: 'JS',
+            vesselDetails: {
+                vesselName: '',
+                shipOperator: '',
+                charterer: '',
+                stsOrganizer: '',
+                plannedTransferDateTime: '',
+                transferLocation: '',
+                cargo: '',
+                constantHeadingOrBerthedShip: '',
+                manoeuvringOrOuterShip: '',
+                poacOrStsSuperintendent: '',
+                applicableJointPlanOperation: '',
+            },
+            genericChecks: GENERIC_CHECKS.map(check => ({
+                clNumber: check.id,
+                description: check.description,
+                status: '',
+                remarks: check.remark || '',
+            })),
+            signatureBlock: {
+                name: '',
+                rank: '',
+                signature: '',
+                date: '',
+            },
+        });
+        // Reset file input
+        if (signatureFileInputRef.current) {
+            signatureFileInputRef.current.value = '';
+        }
+        // Clear update mode
+        setIsUpdateMode(false);
+        // Clear URL parameters
+        router.replace('/OPS-OFD-001');
     };
 
     // Helper function to convert technical errors to user-friendly messages
@@ -509,8 +553,12 @@ export default function BeforeOperationCommenceChecklist() {
             }
 
             setSubmitSuccess(true);
-            // Reset form after successful submission (only in create mode)
-            if (!isUpdateMode) {
+            // Reset form after successful submission
+            if (isUpdateMode) {
+                // After update, reset to create mode and clear URL params
+                resetFormToCreateMode();
+            } else {
+                // After create, just reset form (keep operationRef if in URL)
                 resetForm();
             }
 
